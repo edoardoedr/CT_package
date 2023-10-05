@@ -67,7 +67,7 @@ class CT_dataset:
                     assert all(isinstance(x, CT_stack) for x in self.labels), "Labels must be a images stack in test_performance dataset"
                     assert len(self.images) == len(self.labels), "Labels must have the same len of images in test_performance dataset"
                     self.dataset_info["modalità"] = "test_performance"
-
+    @staticmethod
     def upload_dataset(data_dir, step):
         files_or_folders = os.listdir(data_dir)
         files_or_folders.sort()
