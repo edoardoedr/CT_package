@@ -24,7 +24,7 @@ class CT_dataset:
         self.dataset_info["explained"] = "No"
 
         if data_dir is not None:
-            dataset = self,upload_dataset(data_dir, step)
+            dataset = self.upload_dataset(data_dir, step)
             self.images = dataset[0]
             self.labels = dataset[1]
             self.dataset_info["directory_principale"] = os.path.dirname(data_dir.rstrip("/")) + "/"
