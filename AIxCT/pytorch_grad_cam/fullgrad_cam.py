@@ -1,9 +1,9 @@
 import numpy as np
 import torch
-from pytorch_grad_cam.base_cam import BaseCAM
-from pytorch_grad_cam.utils.find_layers import find_layer_predicate_recursive
-from pytorch_grad_cam.utils.svd_on_activations import get_2d_projection
-from pytorch_grad_cam.utils.image import scale_accross_batch_and_channels, scale_cam_image
+from .base_cam import BaseCAM
+from .utils.find_layers import find_layer_predicate_recursive
+from .utils.svd_on_activations import get_2d_projection
+from .utils.image import scale_accross_batch_and_channels, scale_cam_image
 
 # https://arxiv.org/abs/1905.00780
 

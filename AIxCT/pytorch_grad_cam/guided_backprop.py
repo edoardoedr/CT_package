@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch.autograd import Function
-from pytorch_grad_cam.utils.find_layers import replace_all_layer_type_recursive
+from .utils.find_layers import replace_all_layer_type_recursive
 
 
 class GuidedBackpropReLU(Function):

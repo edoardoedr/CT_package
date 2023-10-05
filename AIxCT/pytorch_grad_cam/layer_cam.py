@@ -1,6 +1,6 @@
 import numpy as np
-from pytorch_grad_cam.base_cam import BaseCAM
-from pytorch_grad_cam.utils.svd_on_activations import get_2d_projection
+from .base_cam import BaseCAM
+from .utils.svd_on_activations import get_2d_projection
 
 # https://ieeexplore.ieee.org/document/9462463
 
