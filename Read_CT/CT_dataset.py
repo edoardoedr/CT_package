@@ -99,6 +99,7 @@ class CT_dataset:
                 etichette = []
                 for file_images in path_images:
                     immagini.append(CT_stack.read_stack(file_images, step))
+                print("sono qui")
 
                 return immagini, etichette
 
