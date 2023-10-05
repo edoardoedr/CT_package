@@ -24,7 +24,9 @@ class CT_dataset:
         self.dataset_info["explained"] = "No"
 
         if data_dir is not None:
-            self.images, self.labels = self.upload_dataset(data_dir, step)
+            dataset = self,upload_dataset(data_dir, step)
+            self.images = dataset[0]
+            self.labels = dataset[1]
             self.dataset_info["directory_principale"] = os.path.dirname(data_dir.rstrip("/")) + "/"
             nome = data_dir.rstrip("/")
             nome = nome.rsplit("/", 1)[-1]
@@ -99,7 +101,6 @@ class CT_dataset:
                 etichette = []
                 for file_images in path_images:
                     immagini.append(CT_stack.read_stack(file_images, step))
-                print("sono qui")
 
                 return immagini, etichette
 
