@@ -30,7 +30,7 @@ import numpy as np
 from scipy.sparse import lil_matrix, csc_matrix
 from scipy.sparse.linalg import spsolve
 from typing import List, Callable
-from pytorch_grad_cam.metrics.perturbation_confidence import PerturbationConfidenceMetric, \
+from .perturbation_confidence import PerturbationConfidenceMetric, \
     AveragerAcrossThresholds, \
     RemoveMostRelevantFirst, \
     RemoveLeastRelevantFirst

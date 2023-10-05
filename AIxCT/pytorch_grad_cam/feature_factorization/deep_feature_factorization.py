@@ -3,8 +3,8 @@ from PIL import Image
 import torch
 from typing import Callable, List, Tuple, Optional
 from sklearn.decomposition import NMF
-from pytorch_grad_cam.activations_and_gradients import ActivationsAndGradients
-from pytorch_grad_cam.utils.image import scale_cam_image, create_labels_legend, show_factorization_on_image
+from ..activations_and_gradients import ActivationsAndGradients
+from ..utils.image import scale_cam_image, create_labels_legend, show_factorization_on_image
 
 
 def dff(activations: np.ndarray, n_components: int = 5):

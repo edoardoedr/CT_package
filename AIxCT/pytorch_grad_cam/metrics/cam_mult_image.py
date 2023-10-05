@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from typing import List, Callable
-from pytorch_grad_cam.metrics.perturbation_confidence import PerturbationConfidenceMetric
+from .perturbation_confidence import PerturbationConfidenceMetric
 
 
 def multiply_tensor_with_cam(input_tensor: torch.Tensor,
