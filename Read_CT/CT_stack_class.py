@@ -10,7 +10,7 @@ import statistics as st
 from scipy import ndimage, signal
 import random
 import time
-from utils import *
+from .utils import *
 
 
 ############################ INIZIO CLASSE ##############################################################
