@@ -1,9 +1,9 @@
-from Read_CT.CT_dataset import CT_dataset
-from Read_CT.CT_stack_class import CT_stack
-from models.unet import UNet
-from models.segnet import SegNet
-from models.continual_Segnet import Continual_SegNet
-from dataloaders import DataLoaderSegmentation_gray, DataLoaderSegmentation_rgb
+from ..Read_CT.CT_dataset import CT_dataset
+from ..Read_CT.CT_stack_class import CT_stack
+from .models.unet import UNet
+from .models.segnet import SegNet
+from .models.continual_Segnet import Continual_SegNet
+from .dataloaders import DataLoaderSegmentation_gray, DataLoaderSegmentation_rgb
 import os
 import numpy as np
 import torch
@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 from utils import *
 from PIL import Image, ImageFilter, ImageOps, ExifTags
 import statistics as st
-from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.image import show_cam_on_image
+from .pytorch_grad_cam import GradCAM
+from .pytorch_grad_cam.utils.image import show_cam_on_image
 
 
 class deep_CT:
