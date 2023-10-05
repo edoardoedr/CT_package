@@ -15,6 +15,6 @@ from .guided_backprop import GuidedBackpropReLUModel
 from .activations_and_gradients import ActivationsAndGradients
 from .feature_factorization.deep_feature_factorization import DeepFeatureFactorization, run_dff_on_image
 from .utils import model_targets
-from utils import reshape_transforms
-from metrics import cam_mult_image
-from metrics import road
+from .utils import reshape_transforms
+from .metrics import cam_mult_image
+from .metrics import road
