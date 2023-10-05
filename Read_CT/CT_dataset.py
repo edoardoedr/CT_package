@@ -1,6 +1,6 @@
 import numpy as np
-from CT_stack_class import CT_stack
-from utils import *
+from .CT_stack_class import CT_stack
+from .utils import *
 import copy
 import pprint
 import json
