@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import tqdm
 from typing import Callable, List
-from pytorch_grad_cam.base_cam import BaseCAM
-from pytorch_grad_cam.utils.find_layers import replace_layer_recursive
-from pytorch_grad_cam.ablation_layer import AblationLayer
+from .base_cam import BaseCAM
+from .utils.find_layers import replace_layer_recursive
+from .ablation_layer import AblationLayer
 
 
 """ Implementation of AblationCAM
