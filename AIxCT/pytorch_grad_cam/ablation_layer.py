@@ -1,7 +1,7 @@
 import torch
 from collections import OrderedDict
 import numpy as np
-from pytorch_grad_cam.utils.svd_on_activations import get_2d_projection
+from .utils.svd_on_activations import get_2d_projection
 
 
 class AblationLayer(torch.nn.Module):
