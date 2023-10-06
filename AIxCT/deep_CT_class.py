@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 import pathlib
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, Process
 import time
 from functools import partial
 import copy
@@ -133,9 +133,10 @@ class deep_CT:
         torch.save(model_state_dict, os.path.join(self.output_dir, "pesi_" + self.dataset.dataset_info["nome"] + ".pth"))
 
     def main_training(self):
+        train = Process(target=self.main_training_np)
+        train.start()
+        train.join()
 
-        funzione = self.main_training_np
-        Pool.apply_async(funzione, ())
     
     def train_loop(self, model, optimizer, criterion):
 
