@@ -73,7 +73,7 @@ def return_output_dir(directory_principale, nome ):
     cont = 0
     trovata = True
     while(trovata == True):
-        nome_cartella = f"output_" + nome + "_{cont:02d}"
+        nome_cartella = "output_" + nome + f"_{cont:02d}"
         # Crea il percorso completo della cartella da creare
         percorso_cartella = os.path.join(directory_principale, nome_cartella)
         # Controlla se la cartella esiste già
