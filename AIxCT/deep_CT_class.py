@@ -445,7 +445,7 @@ class deep_CT:
 
     def save_info(self):
         with open(self.output_dir + "train_parameters" + ".json", "w") as file:
-            json.dump(self.dataset_info, file)
+            json.dump(self.parameters, file)
 
     def print_info(self):
         pprint.pprint(self.parameters)
