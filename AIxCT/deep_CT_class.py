@@ -24,7 +24,7 @@ from .pytorch_grad_cam.utils.image import show_cam_on_image
 import pprint
 import json
 
-keys_classe_deep = ["network", "tiles", "batch_size", "num_class", "retrain", "keep_feature_extract", "num_epochs"]
+keys_classe_deep = ["network", "tiles", "batch_size", "num_class", "retrain", "num_epochs"]
 
 class deep_CT:
 
@@ -446,7 +446,8 @@ class deep_CT:
         with open(self.parameters["directory_output"] + "train_parameters" + ".json", "w") as file:
             json.dump(self.dataset_info, file)
 
-
+    def print_info(self):
+        pprint.pprint(self.parameters)
     
 
 
