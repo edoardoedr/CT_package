@@ -150,12 +150,12 @@ class deep_CT:
         acc_h = []
         val_acc_h = []
         fig, ax = plt.subplots(1, 2, figsize=(10,10))
+        dataloaders = self.dataloader()
 
 
         for epoch in range(1, self.parameters["num_epochs"]):
             print('Epoch {}/{}'.format(epoch, self.parameters["num_epochs"]))
             print('-' * 10)
-            dataloaders = self.dataloader()
 
             # Each epoch has a training and validation phase
             for phase in ['train', 'val']:
@@ -188,7 +188,7 @@ class deep_CT:
                     # track history if only in train
                     with torch.set_grad_enabled(phase == 'train'):
                         
-                        outputs = model(inputs) #for unet
+                        outputs = model(inputs)
                         loss = criterion(outputs, labels)
                         _, preds = torch.max(outputs, 1)
                         # backward + optimize only if in training phase
