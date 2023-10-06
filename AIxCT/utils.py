@@ -83,6 +83,7 @@ def return_output_dir(directory_principale, nome ):
         else:
             os.mkdir(percorso_cartella)
             trovata = False
+    percorso_cartella = percorso_cartella + "/"
     
     return percorso_cartella
 
