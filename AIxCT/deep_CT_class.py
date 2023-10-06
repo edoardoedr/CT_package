@@ -444,7 +444,7 @@ class deep_CT:
             self.dataset.dataset_info["explained"] = "Si"
 
     def save_info(self):
-        with open(self.parameters["directory_output"] + "train_parameters" + ".json", "w") as file:
+        with open(self.output_dir + "train_parameters" + ".json", "w") as file:
             json.dump(self.dataset_info, file)
 
     def print_info(self):
