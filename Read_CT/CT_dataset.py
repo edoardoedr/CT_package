@@ -7,7 +7,7 @@ import json
 from PIL import Image, ImageFilter, ImageOps, ExifTags
 import statistics as st
 
-keys_classe = ["directory_principale", "nome", "images", "labels", "directory_pesi", "numero_classi", "numero_GPU", "network_name", "lista_filtri_grays", "lista_filtri_labels", "modalità", "prediction", "intersection_over_union", "explained"]
+keys_classe = ["directory_principale", "nome", "images", "labels", "directory_output", "numero_classi", "lista_filtri_grays", "lista_filtri_labels", "modalità", "prediction", "intersection_over_union", "explained"]
 
 ############################ INIZIO CLASSE ##############################################################
 class CT_dataset:
@@ -28,6 +28,7 @@ class CT_dataset:
             self.images = dataset[0]
             self.labels = dataset[1]
             self.dataset_info["directory_principale"] = os.path.dirname(data_dir.rstrip("/")) + "/"
+            self.dataset_info["directory_output"] = os.path.dirname(data_dir.rstrip("/")) + "/"
             nome = data_dir.rstrip("/")
             nome = nome.rsplit("/", 1)[-1]
             self.dataset_info["nome"] = nome
@@ -178,6 +179,17 @@ class CT_dataset:
         new_dataset.dataset_info["prediction"] = prediction_list
 
         return new_dataset
+    
+    def reset_dataset(self):
+        self.dataset_info["lista_filtri_grays"] = []
+        self.dataset_info["lista_filtri_labels"] = []
+        self.dataset_info["prediction"] = []
+        self.dataset_info["intersection_over_union"] = []
+        self.dataset_info["explained"] = "No"
+        self.dataset_info["directory_output"] = []
+        self.prediction = []
+        self.grad_CAM = []
+
 
     def copy_dataset(self):
 
@@ -378,12 +390,12 @@ class CT_dataset:
             self.dataset_info["intersection_over_union"].append(ious)
 
     def save_prediction(self):
-        dest_dir = os.path.dirname(self.dataset_info["directory_pesi"]) + "/"
+        dest_dir = os.path.dirname(self.dataset_info["directory_output"]) + "/"
         for preds in self.prediction:
             preds.save_stack(dest_dir, ".nii.gz")
             
     def save_grad_CAM(self):
-        dest_dir = os.path.dirname(self.dataset_info["directory_pesi"]) + "/"
+        dest_dir = os.path.dirname(self.dataset_info["directory_output"]) + "/"
         for preds in self.grad_CAM:
             preds.save_stack(dest_dir, ".nii.gz")
 
@@ -391,7 +403,7 @@ class CT_dataset:
         pprint.pprint(self.dataset_info)
 
     def save_info(self):
-        with open(self.dataset_info["directory_principale"] + self.dataset_info["nome"] + ".json", "w") as file:
+        with open(self.dataset_info["directory_output"] + self.dataset_info["nome"] + ".json", "w") as file:
             json.dump(self.dataset_info, file)
 
     def split_dataset(self):

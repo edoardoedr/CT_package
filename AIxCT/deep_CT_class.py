@@ -21,22 +21,24 @@ from PIL import Image, ImageFilter, ImageOps, ExifTags
 import statistics as st
 from .pytorch_grad_cam import GradCAM
 from .pytorch_grad_cam.utils.image import show_cam_on_image
+import pprint
+import json
 
+keys_classe_deep = ["network", "tiles", "batch_size", "num_class", "retrain", "keep_feature_extract", "num_epochs"]
 
 class deep_CT:
 
-    def __init__(self, dataset, network = None, tiles = None, batch_size = None, num_class = None, retrain = None, keep_feature_extract = None, num_epochs = None):
+    def __init__(self, dataset, parameters, keep_feature_extract = None):
         # controlla se il dataset caricato è una classe di tipo CT dataset
-        self.dataset = dataset
         assert isinstance(dataset, CT_dataset), "The dataset must be a dataset class"
-        self.network = network
-        self.data_type = "gray"
-        self.tiles = tiles
-        self.batch_size = batch_size
-        self.num_class = num_class
-        self.retrain = retrain
-        self.keep_feature_extract = keep_feature_extract
-        self.num_epochs = num_epochs
+        assert isinstance(parameters, dict), "I parametri devono essere passati in un dizionario"
+        self.dataset = dataset
+        self.parameters = {k: v for k, v in parameters.items() if k in keys_classe_deep}
+        self.parameters["data_type"] = "gray"
+        self.keep_feature_extract = True
+        self.output_dir = return_output_dir(self.dataset.dataset_info["directory_principale"], self.dataset.dataset_info["nome"] )
+        self.dataset.dataset_info["directory_output"] = self.output_dir
+        self.dataset.dataset_info["numero_classi"] = self.parameters["num_class"]
 
         if torch.cuda.device_count() > 1:
             self.device = torch.device("cuda")
@@ -55,36 +57,36 @@ class deep_CT:
         print("Initializing Datasets and Dataloaders...")
         data_dir = self.dataset.dataset_info["directory_principale"] + "dataset_training/"
          # Create training and validation datasets
-        if self.data_type == "gray":
-            image_datasets = {x: DataLoaderSegmentation_gray(os.path.join(data_dir, x), x, self.tiles) for x in ['train', 'val']}
+        if self.parameters["data_type"] == "gray":
+            image_datasets = {x: DataLoaderSegmentation_gray(os.path.join(data_dir, x), x, self.parameters["tiles"]) for x in ['train', 'val']}
         else:
-            image_datasets = {x: DataLoaderSegmentation_rgb(os.path.join(data_dir, x), x, self.tiles) for x in ['train', 'val']}
+            image_datasets = {x: DataLoaderSegmentation_rgb(os.path.join(data_dir, x), x, self.parameters["tiles"]) for x in ['train', 'val']}
         # Create training and validation dataloaders
-        dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size = self.batch_size, shuffle=True, num_workers=0) for x in ['train', 'val']}
+        dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size = self.parameters["batch_size"], shuffle=True, num_workers=0) for x in ['train', 'val']}
         
         return dataloaders_dict
 
     def main_training_np(self):
         # Initialize model --- QUI PUOI CAMBIARE IL TIPO DI RETE DA USARE
         #model_deeplabv3, input_size = initialize_model(num_classes, keep_feature_extract, use_pretrained=True) #deeplabv3
-        if self.data_type == "RGB":
+        if self.parameters["data_type"] == "RGB":
             n_channels = 3
         else:
             n_channels = 1
         
-        if self.network == "UNET":
-            model = UNet(n_channels = n_channels, n_class = self.num_class)
+        if self.parameters["network"] == "UNET":
+            model = UNet(n_channels = n_channels, n_class = self.parameters["num_class"])
 
-        elif "SEGNET" in self.network:
-            if "VGG" in self.network:
-                model = SegNet(input_channels = n_channels, output_channels = self.num_class, VGG = True) #segnet
-            elif "Continual" in self.network:
-                model = Continual_SegNet(input_channels = n_channels, output_channels = self.num_class)
+        elif "SEGNET" in self.parameters["network"]:
+            if "VGG" in self.parameters["network"]:
+                model = SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"], VGG = True) #segnet
+            elif "Continual" in self.parameters["network"]:
+                model = Continual_SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"])
             else:
-                model = SegNet(input_channels = n_channels, output_channels = self.num_class, VGG = False) #segnet
+                model = SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"], VGG = False) #segnet
 
-        if len(self.retrain)>1:
-            state_dict = torch.load(self.retrain, map_location = self.device)
+        if len(self.parameters["retrain"])>1:
+            state_dict = torch.load(self.parameters["retrain"], map_location = self.device)
             model.load_state_dict(state_dict)
 
         if self.device == torch.device("cuda"):
@@ -111,10 +113,9 @@ class deep_CT:
         weight = []
         # Setup the loss function
         criterion = nn.CrossEntropyLoss(weight=(torch.FloatTensor(weight).to(self.device) if weight else None))
-        dest_dir = self.dataset.dataset_info["directory_principale"] + "output_" + self.dataset.dataset_info["nome"] + "/"
 
         # Prepare output directory
-        pathlib.Path(dest_dir).mkdir(parents=True, exist_ok=True)
+        #pathlib.Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
         print("Train...")
         # Train and evaluate
@@ -129,11 +130,11 @@ class deep_CT:
         for key in layers_to_remove:
             del model_state_dict[key]
 
-        torch.save(model_state_dict, os.path.join(dest_dir, "pesi_" + self.dataset.dataset_info["nome"] + ".pth"))
+        torch.save(model_state_dict, os.path.join(self.output_dir, "pesi_" + self.dataset.dataset_info["nome"] + ".pth"))
 
     def main_training(self):
 
-        funzione = self.inferenza
+        funzione = self.main_training_np
         Pool.apply_async(funzione, ())
     
     def train_loop(self, model, optimizer, criterion):
@@ -150,8 +151,8 @@ class deep_CT:
         fig, ax = plt.subplots(1, 2, figsize=(10,10))
 
 
-        for epoch in range(1, self.num_epochs):
-            print('Epoch {}/{}'.format(epoch, self.num_epochs))
+        for epoch in range(1, self.parameters["num_epochs"]):
+            print('Epoch {}/{}'.format(epoch, self.parameters["num_epochs"]))
             print('-' * 10)
             dataloaders = self.dataloader()
 
@@ -195,7 +196,7 @@ class deep_CT:
                             optimizer.step()
 
                     # statistics
-                    iou_mean = iou2D(preds, labels, self.num_classes).mean()
+                    iou_mean = iou2D(preds, labels, self.parameters["num_class"]).mean()
                     running_loss += loss.item() * inputs.size(0)
                     running_iou_means.append(iou_mean)
                     # Increment counter
@@ -237,8 +238,7 @@ class deep_CT:
                         ax[1].set_ylabel('Accuracy', fontsize=14)
                         ax[0].legend(['Train_loss','Validation_loss'], fontsize=14)
                         ax[1].legend(['Train_accuracy','Validation_accuracy'], fontsize=14)
-                        dest_dir = self.dataset.dataset_info["directory_principale"] + "output" + self.dataset.dataset_info["nome"] + "/"
-                        plt.savefig(dest_dir + "epoch.png")
+                        plt.savefig(self.output_dir + "epoch.png")
                         plt.pause(0.1)
 
 
@@ -247,7 +247,7 @@ class deep_CT:
                     best_acc = epoch_acc
                     best_model_state_dict = copy.deepcopy(model.state_dict())
 
-                    #current_model_path = os.path.join(dest_dir, f"checkpoint_bellissimo_DeepLabV3_Skydiver.pth")
+                    #current_model_path = os.path.join(self.output_dir, f"checkpoint_bellissimo_DeepLabV3_Skydiver.pth")
                     #print(f"Save current model : {current_model_path}")
                     #torch.save(model.state_dict(), current_model_path)
                 if phase == 'val':
@@ -255,7 +255,7 @@ class deep_CT:
 
                 # Save current model every 25 epochs
                 #if 0 == epoch%25:
-                    #current_model_path = os.path.join(dest_dir, f"checkpoint_{epoch:04}_DeepLabV3_Skydiver.pth")
+                    #current_model_path = os.path.join(self.output_dir, f"checkpoint_{epoch:04}_DeepLabV3_Skydiver.pth")
                     #print(f"Save current model : {current_model_path}")
                     #torch.save(model.state_dict(), current_model_path)
 
@@ -272,21 +272,21 @@ class deep_CT:
 
         start_time = time.perf_counter()
 
-        if self.data_type == "RGB":
+        if self.parameters["data_type"] == "RGB":
             n_channels = 3
         else:
             n_channels = 1
         
-        if self.network == "UNET":
-            model = UNet(n_channels = n_channels, n_class = self.num_class)
+        if self.parameters["network"] == "UNET":
+            model = UNet(n_channels = n_channels, n_class = self.parameters["num_class"])
 
-        elif "SEGNET" in self.network:
-            if "VGG" in self.network:
-                model = SegNet(input_channels = n_channels, output_channels = self.num_class, VGG = True) #segnet
-            elif "Continual" in self.network:
-                model = Continual_SegNet(input_channels = n_channels, output_channels = self.num_class)
+        elif "SEGNET" in self.parameters["network"]:
+            if "VGG" in self.parameters["network"]:
+                model = SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"], VGG = True) #segnet
+            elif "Continual" in self.parameters["network"]:
+                model = Continual_SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"])
             else:
-                model = SegNet(input_channels = n_channels, output_channels = self.num_class, VGG = False) #segnet
+                model = SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"], VGG = False) #segnet
 
         weight_dir = self.dataset.dataset_info["directory_principale"] + "output_" + self.dataset.dataset_info["nome"] + "/" + "pesi_" + self.dataset.dataset_info["nome"] + ".pth"
         state_dict = torch.load(weight_dir)
@@ -377,21 +377,21 @@ class deep_CT:
 
         start_time = time.perf_counter()
 
-        if self.data_type == "RGB":
+        if self.parameters["data_type"] == "RGB":
             n_channels = 3
         else:
             n_channels = 1
         
-        if self.network == "UNET":
-            model = UNet(n_channels = n_channels, n_class = self.num_class)
+        if self.parameters["network"] == "UNET":
+            model = UNet(n_channels = n_channels, n_class = self.parameters["num_class"])
 
-        elif "SEGNET" in self.network:
-            if "VGG" in self.network:
-                model = SegNet(input_channels = n_channels, output_channels = self.num_class, VGG = True) #segnet
-            elif "Continual" in self.network:
-                model = Continual_SegNet(input_channels = n_channels, output_channels = self.num_class)
+        elif "SEGNET" in self.parameters["network"]:
+            if "VGG" in self.parameters["network"]:
+                model = SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"], VGG = True) #segnet
+            elif "Continual" in self.parameters["network"]:
+                model = Continual_SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"])
             else:
-                model = SegNet(input_channels = n_channels, output_channels = self.num_class, VGG = False) #segnet
+                model = SegNet(input_channels = n_channels, output_channels = self.parameters["num_class"], VGG = False) #segnet
 
         weight_dir = self.dataset.dataset_info["directory_principale"] + "output_" + self.dataset.dataset_info["nome"] + "/" + "pesi_" + self.dataset.dataset_info["nome"] + ".pth"
         state_dict = torch.load(weight_dir)
@@ -442,6 +442,9 @@ class deep_CT:
             self.dataset.grad_CAM.append(predizione)
             self.dataset.dataset_info["explained"] = "Si"
 
+    def save_info(self):
+        with open(self.parameters["directory_output"] + "train_parameters" + ".json", "w") as file:
+            json.dump(self.dataset_info, file)
 
 
     

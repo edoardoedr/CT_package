@@ -4,6 +4,7 @@ import statistics as st
 from multiprocessing import Pool, cpu_count
 import time
 from functools import partial
+import os
 
 def iou2D(pred, target, n_classes = 3):
     ious = []
@@ -67,6 +68,24 @@ def calcola_moda_parallelized(stacks):
     print("---")
 
     return new_stack
+
+def return_output_dir(directory_principale, nome ):
+    cont = 0
+    trovata = True
+    while(trovata == True):
+        nome_cartella = f"output_" + nome + "_{cont:02d}"
+        # Crea il percorso completo della cartella da creare
+        percorso_cartella = os.path.join(directory_principale, nome_cartella)
+        # Controlla se la cartella esiste già
+        if os.path.exists(percorso_cartella):
+            trovata = True
+            cont = cont + 1
+        else:
+            os.mkdir(percorso_cartella)
+            trovata = False
+    
+    return percorso_cartella
+
 
 class SemanticSegmentationTarget:
     def __init__(self, category, mask):
